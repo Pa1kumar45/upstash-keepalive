@@ -8,7 +8,11 @@ on:
 jobs:
   ping-db:
     runs-on: ubuntu-latest
-
+# ADD THIS PERMISSIONS BLOCK
+    permissions:
+      contents: write # This is the critical line
+      # The line below is not strictly required for this action, but is good practice.
+      actions: write
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
@@ -26,3 +30,20 @@ jobs:
         env:
           UPSTASH_REDIS_REST_URL: ${{ secrets.UPSTASH_REDIS_REST_URL }}
           UPSTASH_REDIS_REST_TOKEN: ${{ secrets.UPSTASH_REDIS_REST_TOKEN }}
+          # ... (rest of the steps)
+
+      - name: Run keepalive script
+        run: node keepalive.js
+        env:
+          UPSTASH_REDIS_REST_URL: ${{ secrets.UPSTASH_REDIS_REST_URL }}
+          UPSTASH_REDIS_REST_TOKEN: ${{ secrets.UPSTASH_REDIS_REST_TOKEN }}
+
+    # FIX: Ensure this step is indented to match the other steps above it.
+      - name: Keep GitHub Repo Alive
+        uses: gautamkrishnar/keepalive-workflow@v2 
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          time_elapsed: 55
+          
+
+
