@@ -2,20 +2,21 @@ name: Keep Upstash Alive
 
 on:
   schedule:
-    - cron: "0 0 * * *"   # Every 24 hours
-  workflow_dispatch:          # Allow manual trigger from Actions tab
+    - cron: "0 0 * * *"   # Runs once daily at midnight UTC
+  workflow_dispatch:       # Optional manual trigger
+
+# Critical permissions so the workflow can ping itself & other repos
+permissions:
+  contents: write
+  actions: write
 
 jobs:
   ping-db:
     runs-on: ubuntu-latest
-# ADD THIS PERMISSIONS BLOCK
-    permissions:
-      contents: write # This is the critical line
-      # The line below is not strictly required for this action, but is good practice.
-      actions: write
+
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
@@ -23,27 +24,16 @@ jobs:
           node-version: 18
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
-      - name: Run keepalive script
-        run: node keepalive.js
-        env:
-          UPSTASH_REDIS_REST_URL: ${{ secrets.UPSTASH_REDIS_REST_URL }}
-          UPSTASH_REDIS_REST_TOKEN: ${{ secrets.UPSTASH_REDIS_REST_TOKEN }}
-          # ... (rest of the steps)
-
-      - name: Run keepalive script
+      - name: Ping Upstash database
         run: node keepalive.js
         env:
           UPSTASH_REDIS_REST_URL: ${{ secrets.UPSTASH_REDIS_REST_URL }}
           UPSTASH_REDIS_REST_TOKEN: ${{ secrets.UPSTASH_REDIS_REST_TOKEN }}
 
-    # FIX: Ensure this step is indented to match the other steps above it.
-      - name: Keep GitHub Repo Alive
-        uses: gautamkrishnar/keepalive-workflow@v2 
+      - name: Keep GitHub repo alive
+        uses: gautamkrishnar/keepalive-workflow@v2
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          time_elapsed: 55
-          
-
-
+          time_elapsed: 55  # Marks repo active every 55 minutes
