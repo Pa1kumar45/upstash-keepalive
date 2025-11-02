@@ -2,10 +2,10 @@ name: Keep Upstash Alive
 
 on:
   schedule:
-    - cron: "0 0 * * *"   # Runs once daily at midnight UTC
-  workflow_dispatch:       # Optional manual trigger
+    - cron: "0 0 * * *"   # Runs every day at midnight UTC
+  workflow_dispatch:       # Optional manual trigger from Actions tab
 
-# Critical permissions so the workflow can ping itself & other repos
+# 🔑 Critical fix: Give workflow global permissions (not just per job)
 permissions:
   contents: write
   actions: write
@@ -36,4 +36,4 @@ jobs:
         uses: gautamkrishnar/keepalive-workflow@v2
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          time_elapsed: 55  # Marks repo active every 55 minutes
+          time_elapsed: 55
